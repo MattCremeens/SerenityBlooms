@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.name }} | {{ business.name }}{% endblock %}
+{% block description %}{{ item.name }} — {{ business.name }}{% endblock %}
+
+{% block content %}
+    <section class="section shop-detail">
+      <div class="container shop-detail-body">
+        <img
+          class="shop-detail-photo"
+          src="/static/css/images/{{ item.image }}"
+          alt="{{ item.alt }}"
+        >
+        <div class="shop-detail-copy">
+          <a class="shop-back" href="/#shop">← Back to Shop</a>
+          <h1>{{ item.name }}</h1>
+          {% if item.prices %}
+          <ul class="shop-prices">
+            {% for price in item.prices %}
+            <li>
+              <span>{{ price.label }}</span>
+              <span>{{ price.amount }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% for paragraph in item.description %}
+          <p>{{ paragraph }}</p>
+          {% endfor %}
+          {% if order_status == "sent" %}
+          <div class="note venmo-pay">
+            <p>{{ form.confirmation if form and form.confirmation else "Thank you! Your order was emailed to us." }}</p>
+            {% if payment_choice == "pickup" %}
+            <p>You chose to <strong>pay at pickup</strong>. We’ll collect payment when you pick up your flowers.</p>
+            {% else %}
+            <p>
+              Please pay
+              {% if order_total %}
+              <strong>${{ order_total }}</strong>
+              {% else %}
+              your order total
+              {% endif %}
+              on Venmo to <strong>@{{ business.venmo.username }}</strong>.
+            </p>
+            {% if venmo_pay_url %}
+            <a class="btn btn-venmo" href="{{ venmo_pay_url }}" target="_blank" rel="noopener noreferrer">
+              {% if order_total %}Pay ${{ order_total }} with Venmo{% else %}Open Venmo{% endif %}
+            </a>
+            {% endif %}
+            <ol class="venmo-steps">
+              <li>Open Venmo (the button above works on most phones).</li>
+              <li>Search for <strong>{{ business.venmo.username }}</strong>.</li>
+              <li>Send {% if order_total %}${{ order_total }}{% else %}the amount from your order{% endif %}.</li>
+              <li>In the note, write “{{ venmo_note }}” and your name.</li>
+            </ol>
+            {% endif %}
+          </div>
+          {% elif form %}
+          <form class="order-form" method="post" action="/shop/{{ item.slug }}/order">
+            <h2>{{ form.title }}</h2>
+            {% if order_error %}
+            <p class="form-error" role="alert">{{ order_error }}</p>
+            {% endif %}
+            <div class="honeypot" aria-hidden="true">
+              <label for="company">Company</label>
+              <input type="text" id="company" name="company" tabindex="-1" autocomplete="off">
+            </div>
+            <input type="hidden" name="payment_method" id="payment_method" value="{% if form.payment == 'venmo' %}venmo{% endif %}">
+            {% for field in form.fields %}
+            <div class="form-field" data-field="{{ field.name }}">
+              <label for="{{ field.name }}">{{ field.label }}{% if field.required %} <span class="required">*</span>{% endif %}</label>
+              {% if field.hint %}
+              <p class="field-hint">{{ field.hint }}</p>
+              {% endif %}
+              {% if field.type == "select" %}
+              <select
+                id="{{ field.name }}"
+                name="{{ field.name }}"
+                {% if field.required %}required{% endif %}
+              >
+                <option value="" selected disabled>Select one</option>
+                {% for option in field.options %}
+                <option value="{{ option.value }}"{% if option.price is defined %} data-price="{{ option.price }}"{% endif %}>{{ option.label }}</option>
+                {% endfor %}
+              </select>
+              {% elif field.type == "textarea" %}
+              <textarea
+                id="{{ field.name }}"
+                name="{{ field.name }}"
+                rows="3"
+                maxlength="{{ field.maxlength or 100 }}"
+                {% if field.required %}required{% endif %}
+              ></textarea>
+              {% else %}
+              <input
+                id="{{ field.name }}"
+                name="{{ field.name }}"
+                type="{{ field.type }}"
+                {% if field.min %}min="{{ field.min }}"{% endif %}
+                {% if field.max %}max="{{ field.max }}"{% endif %}
+                {% if field.maxlength %}maxlength="{{ field.maxlength }}"{% endif %}
+                {% if field.required %}required{% endif %}
+              >
+              {% endif %}
+            </div>
+            {% endfor %}
+            <button class="btn btn-primary" type="submit">{{ form.submit_label or "Submit order" }}</button>
+            <p class="field-hint venmo-form-note">
+              {% if form.payment == "venmo" %}
+              After you submit, pay on Venmo to @{{ business.venmo.username }}.
+              {% else %}
+              After you submit, you can pay on Venmo to @{{ business.venmo.username }} or pay at pickup.
+              {% endif %}
+            </p>
+          </form>
+          {% if form.payment != "venmo" %}
+          <div class="modal-overlay" id="pay-modal" hidden>
+            <div
+              class="modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="pay-modal-title"
+            >
+              <h2 id="pay-modal-title">How would you like to pay?</h2>
+              <p>Your estimated total is <strong id="pay-modal-total">$0</strong>.</p>
+              <p>
+                Pay now on Venmo to
+                <strong>@{{ business.venmo.username }}</strong>,
+                or pay when you pick up your flowers.
+              </p>
+              <div class="modal-actions">
+                <button type="button" class="btn btn-venmo" id="pay-venmo">
+                  Pay with Venmo
+                </button>
+                <button type="button" class="btn btn-secondary" id="pay-pickup">
+                  Pay at pickup
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          {% elif item.cta %}
+          <a
+            class="btn btn-primary"
+            href="{{ business.email_href }}?subject={{ item.name | urlencode }}"
+          >{{ item.cta }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+    {% if form and order_status != "sent" %}
+    <script>
+      (function () {
+        const form = document.querySelector(".order-form");
+        const fulfillment = document.getElementById("fulfillment");
+        const address = document.getElementById("delivery_address");
+        const paymentMethod = document.getElementById("payment_method");
+        const modal = document.getElementById("pay-modal");
+        const totalEl = document.getElementById("pay-modal-total");
+        const payVenmo = document.getElementById("pay-venmo");
+        const payPickup = document.getElementById("pay-pickup");
+        const venmoUser = {{ business.venmo.username | tojson }};
+        const payNote = {{ (item.name ~ " order") | tojson }};
+
+        if (fulfillment && address) {
+          const field = address.closest(".form-field");
+          function syncAddress() {
+            const needsAddress = fulfillment.value === "delivery";
+            address.required = needsAddress;
+            if (field) field.classList.toggle("is-delivery", needsAddress);
+          }
+          fulfillment.addEventListener("change", syncAddress);
+          syncAddress();
+        }
+
+        function selectedPrice(select) {
+          if (!select || !select.selectedOptions.length) return 0;
+          return Number(select.selectedOptions[0].dataset.price || 0);
+        }
+
+        function estimatedTotal() {
+          const stylePrice = selectedPrice(document.getElementById("style"));
+          const deliveryPrice = selectedPrice(document.getElementById("fulfillment"));
+          const quantity = Number(document.getElementById("quantity")?.value || 1);
+          return stylePrice * quantity + deliveryPrice;
+        }
+
+        function venmoUrl(amount) {
+          const params = new URLSearchParams({
+            txn: "pay",
+            amount: amount.toFixed(2),
+            note: payNote,
+          });
+          return "https://venmo.com/" + encodeURIComponent(venmoUser) + "?" + params.toString();
+        }
+
+        function openModal() {
+          const total = estimatedTotal();
+          if (totalEl) totalEl.textContent = "$" + total;
+          if (modal) modal.hidden = false;
+        }
+
+        function closeModal() {
+          if (modal) modal.hidden = true;
+        }
+
+        if (form && paymentMethod && modal) {
+          form.addEventListener("submit", function (event) {
+            if (paymentMethod.value) return;
+            if (!form.checkValidity()) return;
+            event.preventDefault();
+            openModal();
+          });
+        }
+
+        if (payVenmo) {
+          payVenmo.addEventListener("click", function () {
+            paymentMethod.value = "venmo";
+            window.open(venmoUrl(estimatedTotal()), "_blank", "noopener");
+            closeModal();
+            form.submit();
+          });
+        }
+
+        if (payPickup) {
+          payPickup.addEventListener("click", function () {
+            paymentMethod.value = "pickup";
+            closeModal();
+            form.submit();
+          });
+        }
+      })();
+    </script>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <section class="hero">
+      <div class="hero-content">
+        <p class="eyebrow">Locally grown · Springfield, IL</p>  
+        <h1>{{ business.name }}</h1>
+        <p class="hero-tagline">{{ business.tagline }}</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="/#shop">Find us at market</a>
+          <a class="btn btn-secondary" href="{{ business.social.instagram.url }}" target="_blank" rel="noopener noreferrer">Follow on Instagram</a>
+        </div>
+      </div>
+      <img
+        class="hero-logo"
+        src="/static/css/images/logo.jpg"
+        alt="{{ business.name }} logo"
+      >
+    </section>
+
+    <section id="about" class="section about">
+      <div class="container">
+        <div class="section-header">
+          <h2>About Serenity Bloom</h2>
+        </div>
+        <div class="about-body">
+          <div class="about-copy">
+            {% for paragraph in business.description.split('\n\n') %}
+            <p class="about-text">{{ paragraph }}</p>
+            {% endfor %}
+            <p class="note">Visit us at a local market to browse what's in season — no online ordering at this time.</p>
+          </div>
+          <img
+            class="about-photo"
+            src="/static/css/images/heather.jpeg"
+            alt="{{ business.owner }}, owner of {{ business.name }}, in her backyard garden"
+          >
+        </div>
+      </div>
+    </section>
+
+    <section id="shop" class="section markets">
+      <div class="container">
+        <div class="section-header">
+          <h2>Shop Our Flowers</h2>
+        </div>
+        <div class="card-grid shop-grid">
+          {% for item in shop %}
+          <a class="card shop-card" href="/shop/{{ item.slug }}">
+            <img
+              src="/static/css/images/{{ item.image }}"
+              alt="{{ item.alt }}"
+            >
+            <p class="shop-card-label">{{ item.name }}</p>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section id="flowers" class="section flowers">
+      <div class="container">
+        <div class="section-header">
+          <h2>What's in Bloom</h2>
+          <p class="section-lead">Typical offerings — availability varies with the season</p>
+        </div>
+        <div class="card-grid flower-grid">
+          {% for flower in flowers %}
+          <article class="card flower-card">
+            <span class="flower-season">{{ flower.season }}</span>
+            <h3>{{ flower.name }}</h3>
+            <p>{{ flower.description }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section contact">
+      <div class="container contact-inner">
+        <div class="section-header">
+          <h2>Get in Touch</h2>
+          <p class="section-lead">Questions about markets or custom orders? We'd love to hear from you.</p>
+        </div>
+        <div class="contact-details">
+          <a class="contact-phone" href="{{ business.phone_href }}">{{ business.phone }}</a>
+          <div class="social-links">
+            {% for key, social in business.social.items() %}
+            <a class="social-link" href="{{ social.url }}" target="_blank" rel="noopener noreferrer">
+              {{ social.label }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+{% endblock %}
