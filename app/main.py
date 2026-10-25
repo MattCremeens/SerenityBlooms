@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.concurrency import run_in_threadpool
 
 from app.config import BUSINESS, FLOWERS_FOR_SALE, SHOP_BY_SLUG, SHOP_ITEMS
 from app.emailer import EmailError, send_order_email
@@ -153,7 +154,7 @@ async def submit_order(request: Request, slug: str) -> HTMLResponse:
     data = {key: str(value) for key, value in posted.items()}
     try:
         subject, body, reply_to, total = validate_order(form, data, item["name"])
-        send_order_email(subject, body, reply_to)
+        await run_in_threadpool(send_order_email, subject, body, reply_to)
     except ValueError as exc:
         return shop_page(request, item, order_error=str(exc))
     except EmailError as exc:
@@ -182,7 +183,7 @@ async def submit_inquiry(request: Request, slug: str) -> HTMLResponse:
     data = {key: str(value) for key, value in posted.items()}
     try:
         subject, body, reply_to = validate_inquiry(form, data, item["name"])
-        send_order_email(subject, body, reply_to)
+        await run_in_threadpool(send_order_email, subject, body, reply_to)
     except ValueError as exc:
         return shop_page(request, item, order_error=str(exc), submitted=data)
     except EmailError as exc:

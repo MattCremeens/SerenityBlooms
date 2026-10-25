@@ -153,13 +153,13 @@
               <h2 id="pay-modal-title">How would you like to pay?</h2>
               <p>Your estimated total is <strong id="pay-modal-total">$0</strong>.</p>
               <p>
-                Pay now on Venmo to
+              Pay after submitting your order on Venmo to
                 <strong>@{{ business.venmo.username }}</strong>,
                 or pay when you pick up your flowers.
               </p>
               <div class="modal-actions">
                 <button type="button" class="btn btn-venmo" id="pay-venmo">
-                  Pay with Venmo
+                  Continue with Venmo
                 </button>
                 <button type="button" class="btn btn-secondary" id="pay-pickup">
                   Pay at pickup
@@ -191,8 +191,6 @@
         const totalEl = document.getElementById("pay-modal-total");
         const payVenmo = document.getElementById("pay-venmo");
         const payPickup = document.getElementById("pay-pickup");
-        const venmoUser = {{ business.venmo.username | tojson }};
-        const payNote = {{ (item.name ~ " order") | tojson }};
 
         document.querySelectorAll("[data-depends-on]").forEach(function (field) {
           const source = document.getElementById(field.dataset.dependsOn);
@@ -230,15 +228,6 @@
           return stylePrice * quantity + deliveryPrice;
         }
 
-        function venmoUrl(amount) {
-          const params = new URLSearchParams({
-            txn: "pay",
-            amount: amount.toFixed(2),
-            note: payNote,
-          });
-          return "https://venmo.com/" + encodeURIComponent(venmoUser) + "?" + params.toString();
-        }
-
         function openModal() {
           const total = estimatedTotal();
           if (totalEl) totalEl.textContent = "$" + total;
@@ -261,7 +250,6 @@
         if (payVenmo) {
           payVenmo.addEventListener("click", function () {
             paymentMethod.value = "venmo";
-            window.open(venmoUrl(estimatedTotal()), "_blank", "noopener");
             closeModal();
             form.submit();
           });

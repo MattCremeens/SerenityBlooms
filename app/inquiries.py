@@ -6,6 +6,8 @@ import re
 from datetime import datetime
 from typing import Any
 
+from app.orders import business_today
+
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
@@ -16,7 +18,7 @@ def validate_inquiry(
 ) -> tuple[str, str, str]:
     """Return (subject, body, customer_email) or raise ValueError."""
     lines = [f"New event request: {item_name}", ""]
-    today = datetime.now().date()
+    today = business_today()
     customer_email = ""
 
     for field in form["fields"]:
