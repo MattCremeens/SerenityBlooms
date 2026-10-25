@@ -3,11 +3,11 @@
 {% block content %}
     <section class="hero">
       <div class="hero-content">
-        <p class="eyebrow">Locally grown · Springfield, IL</p>  
+        <p class="eyebrow">Locally grown flowers · Springfield, IL</p>  
         <h1>{{ business.name }}</h1>
         <p class="hero-tagline">{{ business.tagline }}</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="/#shop">Find us at market</a>
+          <a class="btn btn-primary" href="{{ business.social.facebook.url }}" target="_blank" rel="noopener noreferrer">Follow on Facebook</a>
           <a class="btn btn-secondary" href="{{ business.social.instagram.url }}" target="_blank" rel="noopener noreferrer">Follow on Instagram</a>
         </div>
       </div>
@@ -18,17 +18,48 @@
       >
     </section>
 
+    {% if carousel %}
+    <section class="carousel" aria-roledescription="carousel" aria-label="Flower arrangements">
+      <div class="carousel-viewport">
+        <div class="carousel-track">
+          {% for name in carousel %}
+          <img
+            class="carousel-slide"
+            src="/static/css/images/{{ name }}"
+            alt="{{ business.name }} arrangement"
+            {% if not loop.first %}aria-hidden="true"{% endif %}
+          >
+          {% endfor %}
+        </div>
+      </div>
+      {% if carousel|length > 1 %}
+      <button class="carousel-arrow carousel-prev" type="button" aria-label="Previous arrangement">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="carousel-arrow carousel-next" type="button" aria-label="Next arrangement">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M9.5 5.5 16 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      {% endif %}
+    </section>
+    {% if carousel|length > 1 %}
+    <script src="/static/js/carousel.js?v=3" defer></script>
+    {% endif %}
+    {% endif %}
+
     <section id="about" class="section about">
       <div class="container">
         <div class="section-header">
-          <h2>About Serenity Bloom</h2>
+          <h2>About Serenity Blooms</h2>
         </div>
         <div class="about-body">
           <div class="about-copy">
             {% for paragraph in business.description.split('\n\n') %}
             <p class="about-text">{{ paragraph }}</p>
             {% endfor %}
-            <p class="note">Visit us at a local market to browse what's in season — no online ordering at this time.</p>
           </div>
           <img
             class="about-photo"
@@ -58,32 +89,14 @@
       </div>
     </section>
 
-    <section id="flowers" class="section flowers">
-      <div class="container">
-        <div class="section-header">
-          <h2>What's in Bloom</h2>
-          <p class="section-lead">Typical offerings — availability varies with the season</p>
-        </div>
-        <div class="card-grid flower-grid">
-          {% for flower in flowers %}
-          <article class="card flower-card">
-            <span class="flower-season">{{ flower.season }}</span>
-            <h3>{{ flower.name }}</h3>
-            <p>{{ flower.description }}</p>
-          </article>
-          {% endfor %}
-        </div>
-      </div>
-    </section>
-
     <section id="contact" class="section contact">
       <div class="container contact-inner">
         <div class="section-header">
           <h2>Get in Touch</h2>
-          <p class="section-lead">Questions about markets or custom orders? We'd love to hear from you.</p>
+          <p class="section-lead">We'd love to connect.</p>
         </div>
         <div class="contact-details">
-          <a class="contact-phone" href="{{ business.phone_href }}">{{ business.phone }}</a>
+          <a class="contact-email" href="{{ business.email_href }}">{{ business.email }}</a>
           <div class="social-links">
             {% for key, social in business.social.items() %}
             <a class="social-link" href="{{ social.url }}" target="_blank" rel="noopener noreferrer">

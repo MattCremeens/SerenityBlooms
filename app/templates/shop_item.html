@@ -6,14 +6,25 @@
 {% block content %}
     <section class="section shop-detail">
       <div class="container shop-detail-body">
+        {% if gallery %}
+        <div class="shop-detail-gallery">
+          {% for photo in gallery %}
+          <img src="/static/css/images/{{ photo }}" alt="{{ item.alt }} {{ loop.index }}">
+          {% endfor %}
+        </div>
+        {% else %}
         <img
           class="shop-detail-photo"
           src="/static/css/images/{{ item.image }}"
           alt="{{ item.alt }}"
         >
+        {% endif %}
         <div class="shop-detail-copy">
           <a class="shop-back" href="/#shop">← Back to Shop</a>
           <h1>{{ item.name }}</h1>
+          {% if item.available is defined and not item.available %}
+          <p class="note">These flowers are not available at this time. Please check back in the Spring.</p>
+          {% else %}
           {% if item.prices %}
           <ul class="shop-prices">
             {% for price in item.prices %}
@@ -27,7 +38,11 @@
           {% for paragraph in item.description %}
           <p>{{ paragraph }}</p>
           {% endfor %}
-          {% if order_status == "sent" %}
+          {% if order_status == "sent" and form.kind == "inquiry" %}
+          <div class="note">
+            <p>{{ form.confirmation }}</p>
+          </div>
+          {% elif order_status == "sent" %}
           <div class="note venmo-pay">
             <p>{{ form.confirmation if form and form.confirmation else "Thank you! Your order was emailed to us." }}</p>
             {% if payment_choice == "pickup" %}
@@ -56,7 +71,7 @@
             {% endif %}
           </div>
           {% elif form %}
-          <form class="order-form" method="post" action="/shop/{{ item.slug }}/order">
+          <form class="order-form" method="post" action="/shop/{{ item.slug }}/{% if form.kind == 'inquiry' %}inquiry{% else %}order{% endif %}">
             <h2>{{ form.title }}</h2>
             {% if order_error %}
             <p class="form-error" role="alert">{{ order_error }}</p>
@@ -67,8 +82,16 @@
             </div>
             <input type="hidden" name="payment_method" id="payment_method" value="{% if form.payment == 'venmo' %}venmo{% endif %}">
             {% for field in form.fields %}
-            <div class="form-field" data-field="{{ field.name }}">
-              <label for="{{ field.name }}">{{ field.label }}{% if field.required %} <span class="required">*</span>{% endif %}</label>
+            <div
+              class="form-field"
+              data-field="{{ field.name }}"
+              {% if field.depends_on %}
+              data-depends-on="{{ field.depends_on }}"
+              data-depends-value="{{ field.depends_value }}"
+              {% if field.hidden %}hidden{% endif %}
+              {% endif %}
+            >
+              <label for="{{ field.name }}">{{ field.label }}{% if field.required or field.depends_on %} <span class="required">*</span>{% endif %}</label>
               {% if field.hint %}
               <p class="field-hint">{{ field.hint }}</p>
               {% endif %}
@@ -78,9 +101,9 @@
                 name="{{ field.name }}"
                 {% if field.required %}required{% endif %}
               >
-                <option value="" selected disabled>Select one</option>
+                <option value="" disabled{% if not field.value %} selected{% endif %}>Select one</option>
                 {% for option in field.options %}
-                <option value="{{ option.value }}"{% if option.price is defined %} data-price="{{ option.price }}"{% endif %}>{{ option.label }}</option>
+                <option value="{{ option.value }}"{% if field.value == option.value %} selected{% endif %}{% if option.price is defined %} data-price="{{ option.price }}"{% endif %}>{{ option.label }}</option>
                 {% endfor %}
               </select>
               {% elif field.type == "textarea" %}
@@ -90,7 +113,7 @@
                 rows="3"
                 maxlength="{{ field.maxlength or 100 }}"
                 {% if field.required %}required{% endif %}
-              ></textarea>
+              >{{ field.value or '' }}</textarea>
               {% else %}
               <input
                 id="{{ field.name }}"
@@ -99,21 +122,27 @@
                 {% if field.min %}min="{{ field.min }}"{% endif %}
                 {% if field.max %}max="{{ field.max }}"{% endif %}
                 {% if field.maxlength %}maxlength="{{ field.maxlength }}"{% endif %}
+                {% if field.autocomplete %}autocomplete="{{ field.autocomplete }}"{% endif %}
                 {% if field.required %}required{% endif %}
+                value="{{ field.value or '' }}"
               >
               {% endif %}
             </div>
             {% endfor %}
             <button class="btn btn-primary" type="submit">{{ form.submit_label or "Submit order" }}</button>
+            {% if form.kind == "inquiry" %}
+            <p class="field-hint venmo-form-note">We’ll follow up by phone or email to discuss options.</p>
+            {% else %}
             <p class="field-hint venmo-form-note">
               {% if form.payment == "venmo" %}
-              After you submit, pay on Venmo to @{{ business.venmo.username }}.
+              After you submit, pay on Venmo to @{{ business.venmo.username }}. <br>Last four digits of phone number are 3692.
               {% else %}
               After you submit, you can pay on Venmo to @{{ business.venmo.username }} or pay at pickup.
               {% endif %}
             </p>
+            {% endif %}
           </form>
-          {% if form.payment != "venmo" %}
+          {% if form.kind != "inquiry" and form.payment != "venmo" %}
           <div class="modal-overlay" id="pay-modal" hidden>
             <div
               class="modal"
@@ -139,11 +168,14 @@
             </div>
           </div>
           {% endif %}
+          {% elif item.notice %}
+          <p class="note">{{ item.notice }}</p>
           {% elif item.cta %}
           <a
             class="btn btn-primary"
             href="{{ business.email_href }}?subject={{ item.name | urlencode }}"
           >{{ item.cta }}</a>
+          {% endif %}
           {% endif %}
         </div>
       </div>
@@ -161,6 +193,19 @@
         const payPickup = document.getElementById("pay-pickup");
         const venmoUser = {{ business.venmo.username | tojson }};
         const payNote = {{ (item.name ~ " order") | tojson }};
+
+        document.querySelectorAll("[data-depends-on]").forEach(function (field) {
+          const source = document.getElementById(field.dataset.dependsOn);
+          const input = field.querySelector("input, textarea, select");
+          if (!source || !input) return;
+          function syncDependent() {
+            const show = source.value === field.dataset.dependsValue;
+            field.hidden = !show;
+            input.required = show;
+          }
+          source.addEventListener("change", syncDependent);
+          syncDependent();
+        });
 
         if (fulfillment && address) {
           const field = address.closest(".form-field");

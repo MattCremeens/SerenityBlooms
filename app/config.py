@@ -188,15 +188,63 @@ IN_SEASON_FORM = {
     ],
 }
 
+EVENT_INQUIRY_FORM = {
+    "kind": "inquiry",
+    "title": "Request a quote",
+    "submit_label": "Send request",
+    "confirmation": "Thank you! Your request was emailed to us, and we'll be in touch soon.",
+    "fields": [
+        {
+            "name": "customer_name",
+            "label": "Name",
+            "type": "text",
+            "required": True,
+            "maxlength": 80,
+            "autocomplete": "name",
+        },
+        {
+            "name": "customer_phone",
+            "label": "Phone number",
+            "type": "tel",
+            "required": True,
+            "maxlength": 30,
+            "autocomplete": "tel",
+        },
+        {
+            "name": "customer_email",
+            "label": "Email address",
+            "type": "email",
+            "required": True,
+            "maxlength": 120,
+            "autocomplete": "email",
+        },
+        {
+            "name": "event_type",
+            "label": "Type of event",
+            "type": "text",
+            "required": True,
+            "maxlength": 80,
+        },
+        {
+            "name": "event_date",
+            "label": "Date of event",
+            "type": "date",
+            "required": True,
+            "min": "today",
+        },
+    ],
+}
+
 SHOP_ITEMS = [
     {
         "slug": "in-season",
-        "name": "In-season locally grown flowers",
+        "name": "Locally grown flowers (June thru October)",
         "image": "in_season.jpeg",
-        "alt": "In-season locally grown flowers",
+        "alt": "Locally grown flowers (June thru October)",
         "description": [
             "During late spring through early fall, we offer market bouquets and specialty arrangements. Reach out to request something created just for you!",
         ],
+        "available": False,
         "form": IN_SEASON_FORM,
     },
     {
@@ -209,33 +257,34 @@ SHOP_ITEMS = [
             {"label": "Bi-weekly for 6 weeks", "amount": "$75"},
         ],
         "description": [
-            "This is the perfect gift for someone you love! Beginning in July 2027, we will offer 6 weeks of beautiful, fresh-cut bouquets to be picked up weekly or bi-weekly on Friday evenings at our home near Rochester, IL. The bouquets will be different every week, but some of the flowers you can expect to see are celosia, zinnias, gomphrena, echinacea, lavender, and so much more!",
+            "This is the perfect gift for someone you love! Beginning in July 2027, we will offer 6 weeks of beautiful, fresh-cut bouquets to be picked up weekly or bi-weekly on Friday evenings at our home near Rochester, IL. The bouquets will be different every week, but some of the flowers you can expect to see are celosia, zinnias, gomphrena, basil, lavender, and so much more!",
             "These bouquets are fuller than our traditional wrapped bouquets and will be full of our most beautiful blooms each week.",
             "We expect this subscription to begin the second week of July, but it is somewhat dependent on the weather. We will notify you the week before the subscription begins and keep in touch throughout the growing season about any changes in pickup dates.",
-            "We cannot refund missed pickups, but you may transfer your weekly bouquet to a friend or family member! If we experience crop loss or weather causes issues with our flowers, we will supplement with our next available crop.",
+            "We cannot refund missed pickups, but you may transfer your weekly bouquet to a friend or family member! If we experience crop loss or the weather causes issues with our flowers, we will supplement with our next available crop.",
             "* If this is being gifted, we will email you a certificate to present to the recipient."
         ],
         "form": SUBSCRIPTION_FORM,
     },
     {
         "slug": "event-flowers",
-        "name": "Event Flowers",
+        "name": "Event flowers",
         "image": "event_flowers.jpeg",
         "alt": "Event flowers",
         "description": [
-            "We would love to help make your small event more special with beautiful arrangements from Serenity Blooms. From May-September we can offer our seasonal fresh-cut flowers, and in the colder months, we can source fresh flowers from our wholesaler. We would love to help you bring your vision to life! Reach out to us at serenitybloomsflowerco@gmail.com to receive a quote.",
+            "We would love to help make your small event more special with beautiful arrangements from Serenity Blooms. From May-September we can offer our seasonal fresh-cut flowers, and in the colder months, we can source fresh flowers from our wholesaler. We would love to help you bring your vision to life! Tell us a little about your event below, and we’ll follow up with a quote.",
         ],
-        "cta": "Email for a quote",
+        "form": EVENT_INQUIRY_FORM,
     },
     {
         "slug": "prom-homecoming",
         "name": "Prom/Homecoming flowers",
         "image": "dance_flower_main_image.jpeg",
+        "gallery_prefix": "dance_flowers_",
         "alt": "Prom/Homecoming flowers",
         "description": [
-            "We offer custom hand-tied bouquets and boutonnieres using a combination of fresh flowers from both the wholesaler and our garden. We feel this approach allows us to design beautiful arrangements that perfectly complement your formal wear.",
+            "We offer custom bouquets, corsages, boutonnieres, and pocket squares using a combination of fresh flowers from both the wholesaler and our garden. We feel this approach allows us to design beautiful arrangements that perfectly complement your formal wear.",
         ],
-        "cta": "Email to order",
+        "notice": "Prom orders will open up in the Spring.",
     },
 ]
 

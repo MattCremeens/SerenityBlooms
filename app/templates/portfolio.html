@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio | {{ business.name }}{% endblock %}
+{% block description %}Flower arrangements by {{ business.name }}{% endblock %}
+
+{% block content %}
+    <section class="section portfolio">
+      <div class="container">
+        <div class="section-header">
+          <h2>Portfolio</h2>
+          <p>During the growing season, we love designing custom arrangements with our fresh, locally grown flowers. Check out some pictures of our previous work.</p>
+        </div>
+        {% if photos %}
+        <div class="portfolio-gallery">
+          {% for photo in photos %}
+          <img
+            src="/static/css/images/{{ photo }}"
+            alt="{{ business.name }} arrangement {{ loop.index }}"
+          >
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="note">Portfolio photos are on the way.</p>
+        {% endif %}
+      </div>
+    </section>
+{% endblock %}

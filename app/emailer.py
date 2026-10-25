@@ -26,7 +26,7 @@ def send_order_email(subject: str, body: str, reply_to: str | None = None) -> No
 
     if not user or not password:
         raise EmailError(
-            "Order email is not configured. Add SMTP_USER and SMTP_PASSWORD to a .env file."
+            "Email is not configured. Add SMTP_USER and SMTP_PASSWORD to a .env file."
         )
 
     message = EmailMessage()
@@ -43,4 +43,4 @@ def send_order_email(subject: str, body: str, reply_to: str | None = None) -> No
             smtp.login(user, password)
             smtp.send_message(message)
     except Exception as exc:
-        raise EmailError("We couldn't send your order email. Please try again or call us.") from exc
+        raise EmailError("We couldn't send your message. Please try again or call us.") from exc

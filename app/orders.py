@@ -31,7 +31,9 @@ def time_options() -> list[dict[str, str]]:
 def prepare_form(form: dict[str, Any]) -> dict[str, Any]:
     prepared = deepcopy(form)
     for field in prepared["fields"]:
-        if field["type"] == "date":
+        if field["type"] == "date" and field.get("min") == "today":
+            field["min"] = datetime.now().date().isoformat()
+        elif field["type"] == "date" and "min" not in field:
             field["min"] = earliest_order_date().isoformat()
         elif field["type"] == "time_select":
             field["type"] = "select"
