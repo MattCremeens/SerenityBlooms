@@ -22,7 +22,7 @@
         <div class="shop-detail-copy">
           <a class="shop-back" href="/#shop">← Back to Shop</a>
           <h1>{{ item.name }}</h1>
-          {% if item.available is defined and not item.available %}
+          {% if item.available is defined and not item.available and not item.closed_note %}
           <p class="note">These flowers are not available at this time. Please check back in the Spring.</p>
           {% else %}
           {% if item.prices %}
@@ -38,7 +38,9 @@
           {% for paragraph in item.description %}
           <p>{{ paragraph }}</p>
           {% endfor %}
-          {% if order_status == "sent" and form.kind == "inquiry" %}
+          {% if item.closed_note %}
+          <p class="note">{{ item.closed_note }}</p>
+          {% elif order_status == "sent" and form.kind == "inquiry" %}
           <div class="note">
             <p>{{ form.confirmation }}</p>
           </div>

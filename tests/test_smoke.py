@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from httpx import ASGITransport, AsyncClient
 
+from app.config import SHOP_BY_SLUG
 from app.main import app
 from app.orders import business_today, earliest_order_date
 
@@ -39,10 +40,25 @@ class SiteSmokeTests(unittest.IsolatedAsyncioTestCase):
     def test_business_dates_are_local(self):
         self.assertEqual((earliest_order_date() - business_today()).days, 1)
 
-    async def test_venmo_is_after_confirmation(self):
+    async def test_subscription_form_is_hidden_until_sales_open(self):
+        item = SHOP_BY_SLUG["summer-subscription"]
+        self.assertFalse(item["available"])
+        self.assertEqual(item["form"]["submit_label"], "Continue to Venmo")
+
         page = (await self.client.get("/shop/summer-subscription")).text
-        self.assertNotIn("window.open(venmoUrl", page)
-        self.assertIn("Continue to Venmo", page)
+        self.assertIn("Sales open November 27, 2026.", page)
+        self.assertIn("perfect gift", page)
+        self.assertNotIn("Continue to Venmo", page)
+        self.assertNotIn('class="order-form"', page)
+
+        with patch("app.main.send_order_email") as send:
+            response = await self.client.post(
+                "/shop/summer-subscription/order",
+                data={"customer_name": "Ada", "plan": "weekly"},
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Sales open November 27, 2026.", response.text)
+        send.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ BUSINESS = {
         "create something to match just about any budget. We also use a combination of our "
         "locally grown stems and fresh flowers from the wholesaler to create bouquets and "
         "boutonnieres for dances and arrangements for small special events. Email me at "
-        "serenitybloomsflowerco@gmail.com if you want to order something pretty today!"
+        "serenitybloomsflowerco@gmail.com with any questions or to discuss a special order."
     ),
     "phone": "(217) 259-3692",
     "phone_href": "tel:+12172593692",
@@ -263,6 +263,8 @@ SHOP_ITEMS = [
             "We cannot refund missed pickups, but you may transfer your weekly bouquet to a friend or family member! If we experience crop loss or the weather causes issues with our flowers, we will supplement with our next available crop.",
             "* If this is being gifted, we will email you a certificate to present to the recipient."
         ],
+        "available": False,
+        "closed_note": "Sales open November 27, 2026.",
         "form": SUBSCRIPTION_FORM,
     },
     {
@@ -271,7 +273,7 @@ SHOP_ITEMS = [
         "image": "event_flowers.jpeg",
         "alt": "Event flowers",
         "description": [
-            "We would love to help make your small event more special with beautiful arrangements from Serenity Blooms. From May-September we can offer our seasonal fresh-cut flowers, and in the colder months, we can source fresh flowers from our wholesaler. We would love to help you bring your vision to life! Tell us a little about your event below, and we’ll follow up with a quote.",
+            "We would love to help make your small event more special with beautiful arrangements from Serenity Blooms. From May-September we can offer our seasonal fresh-cut flowers, and in the colder months, we can source fresh flowers from our wholesaler. We would love to help you bring your vision to life! Tell us a little about your event below, and we'll follow up to gather more details and to discuss a quote.",
         ],
         "form": EVENT_INQUIRY_FORM,
     },
