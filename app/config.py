@@ -89,100 +89,76 @@ SUBSCRIPTION_FORM = {
 }
 
 IN_SEASON_FORM = {
-    "title": "In-season locally grown flowers order form",
+    "title": "Order form",
+    "payment": "venmo",
+    "submit_label": "Continue to Venmo",
+    "confirmation": "Thank you! Your order was emailed to us.",
     "fields": [
         {
             "name": "customer_name",
             "label": "Your name",
             "type": "text",
             "required": True,
+            "autocomplete": "name",
         },
         {
             "name": "customer_email",
             "label": "Your email",
             "type": "email",
             "required": True,
+            "autocomplete": "email",
         },
         {
             "name": "customer_phone",
             "label": "Phone number",
             "type": "tel",
             "required": True,
+            "autocomplete": "tel",
         },
         {
-            "name": "style",
-            "label": "Style",
-            "hint": "Select one",
-            "type": "select",
+            "name": "arrangements",
+            "label": "Choice of flowers",
+            "hint": "Set a quantity for each arrangement you want. You can order more than one.",
+            "type": "products",
             "required": True,
+            "max_quantity": 10,
             "options": [
-                {"value": "wrapped-bouquet", "label": "Wrapped bouquet: $25", "price": 25},
-                {"value": "premium-vase", "label": "Premium vase arrangement: $35", "price": 35},
-            ],
-        },
-        {
-            "name": "color_palette",
-            "label": "Color palette",
-            "hint": "Select one",
-            "type": "select",
-            "required": True,
-            "options": [
-                {"value": "bright", "label": "Bright and colorful"},
-                {"value": "pastel", "label": "Pastel"},
-            ],
-        },
-        {
-            "name": "needed_date",
-            "label": "Date needed",
-            "hint": "Please allow at least 24 hours",
-            "type": "date",
-            "required": True,
-        },
-        {
-            "name": "needed_time",
-            "label": "Time needed",
-            "type": "time_select",
-            "required": True,
-        },
-        {
-            "name": "fulfillment",
-            "label": "Pick up or delivery",
-            "hint": "Select one",
-            "type": "select",
-            "required": True,
-            "options": [
-                {"value": "pickup", "label": "Pickup: no additional charge", "price": 0},
-                {"value": "delivery", "label": "Delivery within 15 miles: $10", "price": 10},
-            ],
-        },
-        {
-            "name": "recipient_name",
-            "label": "Recipient name",
-            "type": "text",
-            "required": False,
-        },
-        {
-            "name": "delivery_address",
-            "label": "Delivery address",
-            "hint": "Required if you choose delivery",
-            "type": "text",
-            "required": False,
-        },
-        {
-            "name": "message",
-            "label": "Custom message",
-            "hint": "Up to 100 characters",
-            "type": "textarea",
-            "required": False,
-            "maxlength": 100,
-        },
-        {
-            "name": "quantity",
-            "label": "Quantity",
-            "type": "select",
-            "required": True,
-            "options": [
-                {"value": str(n), "label": str(n)} for n in range(1, 6)
+                {
+                    "value": "bud-vases-warm",
+                    "label": "Trio of bud vases (orange/yellow/burgundy)",
+                    "price": 36,
+                    "image": "trio_of_bud_vases_orange_yellow_burgandy.jpeg",
+                },
+                {
+                    "value": "bud-vases-blush",
+                    "label": "Trio of bud vases (blush/burgundy)",
+                    "price": 36,
+                    "image": "trio_of_bud_vases_blush_burgandy.jpeg",
+                },
+                {
+                    "value": "bouquet-warm",
+                    "label": "Wrapped bouquet (orange/yellow/burgundy)",
+                    "price": 40,
+                    "image": "wrapped_bouquet_orange_yellow_burgandy.jpeg",
+                },
+                {
+                    "value": "bouquet-blush",
+                    "label": "Wrapped bouquet (blush/burgundy)",
+                    "price": 40,
+                    "image": "wrapped_bouquet_blush_burgandy.jpeg",
+                },
+                {
+                    "value": "vase-warm",
+                    "label": "Premium vase arrangement (orange/yellow/burgundy)",
+                    "price": 50,
+                    "image": "premium_vase_arrangement_orange_yellow_burgandy.jpeg",
+                },
+                {
+                    "value": "vase-blush",
+                    "label": "Premium vase arrangement (blush/burgundy)",
+                    "price": 50,
+                    "image": "premium_vase_arrangement_blush_burgandy.jpeg",
+                },
             ],
         },
     ],
@@ -238,13 +214,24 @@ EVENT_INQUIRY_FORM = {
 SHOP_ITEMS = [
     {
         "slug": "in-season",
-        "name": "Locally grown flowers (June thru October)",
-        "image": "in_season.jpeg",
-        "alt": "Locally grown flowers (June thru October)",
-        "description": [
-            "During late spring through early fall, we offer market bouquets and specialty arrangements. Reach out to request something created just for you!",
+        "name": "Thanksgiving arrangements",
+        "image": "thanksgiving_arrangements.jpeg",
+        "gallery": [
+            "thanksgiving_1.jpeg",
+            "wrapped_bouquet_orange_yellow_burgandy.jpeg",
+            "trio_of_bud_vases_orange_yellow_burgandy.jpeg",
+            "thanksgiving_2.jpeg",
+            "trio_of_bud_vases_blush_burgandy.jpeg",
+            "thanksgiving_arrangements_2.jpeg",
+            "wrapped_bouquet_blush_burgandy.jpeg",
+            "premium_vase_arrangement_orange_yellow_burgandy.jpeg",
+            "premium_vase_arrangement_blush_burgandy.jpeg",
         ],
-        "available": False,
+        "alt": "Thanksgiving arrangements",
+        "description": [
+            "Our fall arrangements are available for preorder just in time to grace your holiday table or be gifted as a special hostess gift! Choose from a trio of bud vases, wrapped bouquets, or premium vase arrangements in either a dreamy color combination of blush, burgundy and cream, OR classic warm fall colors of orange, yellow, burgundy and cream. All arrangements will include a premium mix of roses, hypericum berries, eucalyptus, and other seasonal flowers. (Please note that we always do our best to match orders to what is pictured, but due to flower availability some substitutions may need to be made.)",
+            "These flowers will be available for pickup at our home near Rochester, IL on Tuesday, Nov. 24 from 5-7 pm. After you order you will receive a confirmation email with our address. If you are interested in local delivery for just $10, email serenitybloomsflowerco@gmail.com to see if you are within our delivery range. Happy Thanksgiving!",
+        ],
         "form": IN_SEASON_FORM,
     },
     {
@@ -259,8 +246,9 @@ SHOP_ITEMS = [
         "description": [
             "This is the perfect gift for someone you love! Beginning in July 2027, we will offer 6 weeks of beautiful, fresh-cut bouquets to be picked up weekly or bi-weekly on Friday evenings at our home near Rochester, IL. The bouquets will be different every week, but some of the flowers you can expect to see are celosia, zinnias, gomphrena, basil, lavender, and so much more!",
             "These bouquets are fuller than our traditional wrapped bouquets and will be full of our most beautiful blooms each week.",
-            "We expect this subscription to begin the second week of July, but it is somewhat dependent on the weather. We will notify you the week before the subscription begins and keep in touch throughout the growing season about any changes in pickup dates.",
+            "We expect this subscription to begin the first week of July, but it is somewhat dependent on the weather. We will notify you the week before the subscription begins and keep in touch throughout the growing season about any changes in pickup dates.",
             "We cannot refund missed pickups, but you may transfer your weekly bouquet to a friend or family member! If we experience crop loss or the weather causes issues with our flowers, we will supplement with our next available crop.",
+            "If you live in Springfield or one of the surrounding communities and would like to add on delivery for $10 per bouquet, please email me at serenitybloomsflowerco@gmail.com to see if you live within our range.",
             "* If this is being gifted, we will email you a certificate to present to the recipient."
         ],
         "available": False,

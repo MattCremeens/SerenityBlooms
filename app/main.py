@@ -35,7 +35,11 @@ def shop_page(
     form = prepare_form(item["form"]) if item.get("form") and available else None
     if form:
         for field in form["fields"]:
-            if submitted:
+            if submitted and field.get("type") == "products":
+                for option in field.get("options", []):
+                    key = f"{field['name']}__{option['value']}"
+                    option["quantity"] = (submitted.get(key) or "0").strip()
+            elif submitted:
                 field["value"] = (submitted.get(field["name"]) or "").strip()
             controller = field.get("depends_on")
             if controller:
@@ -65,7 +69,7 @@ def shop_page(
             "payment_choice": payment_choice,
             "venmo_pay_url": pay_url,
             "venmo_note": pay_note,
-            "gallery": gallery_images(item.get("gallery_prefix")),
+            "gallery": list(item.get("gallery") or gallery_images(item.get("gallery_prefix"))),
         },
     )
 
@@ -156,9 +160,9 @@ async def submit_order(request: Request, slug: str) -> HTMLResponse:
         subject, body, reply_to, total = validate_order(form, data, item["name"])
         await run_in_threadpool(send_order_email, subject, body, reply_to)
     except ValueError as exc:
-        return shop_page(request, item, order_error=str(exc))
+        return shop_page(request, item, order_error=str(exc), submitted=data)
     except EmailError as exc:
-        return shop_page(request, item, order_error=str(exc))
+        return shop_page(request, item, order_error=str(exc), submitted=data)
 
     payment = data.get("payment_method") or "venmo"
     if form.get("payment") == "venmo" or payment not in {"venmo", "pickup"}:

@@ -1,0 +1,7 @@
+# Uploads for `gcloud run deploy --source .` follow this file instead of
+# .gitignore. Product photos stay on disk and in the container, and stay
+# out of git.
+#!include:.gitignore
+
+!app/static/css/images/
+!app/static/css/images/**

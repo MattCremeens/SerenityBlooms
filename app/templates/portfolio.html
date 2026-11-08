@@ -13,10 +13,12 @@
         {% if photos %}
         <div class="portfolio-gallery">
           {% for photo in photos %}
-          <img
-            src="/static/css/images/{{ photo }}"
-            alt="{{ business.name }} arrangement {{ loop.index }}"
-          >
+          <button type="button" class="zoomable" aria-label="Enlarge arrangement {{ loop.index }}">
+            <img
+              src="/static/css/images/{{ photo }}"
+              alt="{{ business.name }} arrangement {{ loop.index }}"
+            >
+          </button>
           {% endfor %}
         </div>
         {% else %}
@@ -24,4 +26,45 @@
         {% endif %}
       </div>
     </section>
+    {% if photos %}
+    <dialog class="lightbox" id="photo-lightbox">
+      <div class="lightbox-frame">
+        <button type="button" class="lightbox-close" aria-label="Close enlarged photo">&times;</button>
+        <img id="photo-lightbox-image" alt="">
+      </div>
+    </dialog>
+    <script>
+      (function () {
+        var dialog = document.getElementById("photo-lightbox");
+        var image = document.getElementById("photo-lightbox-image");
+        var closeButton = dialog && dialog.querySelector(".lightbox-close");
+        if (!dialog || !image || typeof dialog.showModal !== "function") return;
+
+        document.querySelectorAll(".zoomable").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var source = button.querySelector("img");
+            if (!source) return;
+            image.src = source.currentSrc || source.src;
+            image.alt = source.alt || "Enlarged photo";
+            if (!dialog.open) dialog.showModal();
+          });
+        });
+
+        if (closeButton) {
+          closeButton.addEventListener("click", function () {
+            dialog.close();
+          });
+        }
+
+        dialog.addEventListener("click", function (event) {
+          if (event.target === dialog) dialog.close();
+        });
+
+        dialog.addEventListener("close", function () {
+          image.removeAttribute("src");
+          image.alt = "";
+        });
+      })();
+    </script>
+    {% endif %}
 {% endblock %}

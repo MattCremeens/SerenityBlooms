@@ -4,15 +4,18 @@
 {% block description %}{{ item.name }} — {{ business.name }}{% endblock %}
 
 {% block content %}
+    {% set has_products = form and (form.fields | selectattr('type', 'equalto', 'products') | list) %}
     <section class="section shop-detail">
-      <div class="container shop-detail-body">
+      <div class="container shop-detail-body{% if has_products and gallery %} shop-detail-split{% elif has_products %} shop-detail-wide{% endif %}">
         {% if gallery %}
         <div class="shop-detail-gallery">
           {% for photo in gallery %}
-          <img src="/static/css/images/{{ photo }}" alt="{{ item.alt }} {{ loop.index }}">
+          <button type="button" class="zoomable" aria-label="Enlarge {{ item.alt }} {{ loop.index }}">
+            <img src="/static/css/images/{{ photo }}" alt="{{ item.alt }} {{ loop.index }}">
+          </button>
           {% endfor %}
         </div>
-        {% else %}
+        {% elif not has_products %}
         <img
           class="shop-detail-photo"
           src="/static/css/images/{{ item.image }}"
@@ -20,6 +23,7 @@
         >
         {% endif %}
         <div class="shop-detail-copy">
+          <div class="shop-detail-intro">
           <a class="shop-back" href="/#shop">← Back to Shop</a>
           <h1>{{ item.name }}</h1>
           {% if item.available is defined and not item.available and not item.closed_note %}
@@ -38,6 +42,10 @@
           {% for paragraph in item.description %}
           <p>{{ paragraph }}</p>
           {% endfor %}
+          {% endif %}
+          </div>
+          {% if not (item.available is defined and not item.available and not item.closed_note) %}
+          <div class="shop-order-block">
           {% if item.closed_note %}
           <p class="note">{{ item.closed_note }}</p>
           {% elif order_status == "sent" and form.kind == "inquiry" %}
@@ -83,7 +91,47 @@
               <input type="text" id="company" name="company" tabindex="-1" autocomplete="off">
             </div>
             <input type="hidden" name="payment_method" id="payment_method" value="{% if form.payment == 'venmo' %}venmo{% endif %}">
-            {% for field in form.fields %}
+            {% for field in form.fields if field.type == "products" %}
+            <fieldset class="form-field product-choices">
+              <legend>{{ field.label }}{% if field.required %} <span class="required">*</span>{% endif %}</legend>
+              {% if field.hint %}
+              <p class="field-hint">{{ field.hint }}</p>
+              {% endif %}
+              <p class="form-error" id="product-error" hidden role="alert">Please choose at least one arrangement.</p>
+              <div class="product-grid">
+                {% for option in field.options %}
+                <div class="product-card">
+                  {% if option.image %}
+                  <button type="button" class="zoomable" aria-label="Enlarge {{ option.label }}">
+                    <img src="/static/css/images/{{ option.image }}" alt="{{ option.label }}">
+                  </button>
+                  {% else %}
+                  <div class="product-placeholder" role="img" aria-label="Photo coming soon for {{ option.label }}">Photo coming soon</div>
+                  {% endif %}
+                  <div class="product-card-body">
+                    <p class="product-card-label">{{ option.label }}</p>
+                    <p class="product-card-price">${{ option.price }}</p>
+                    <div class="product-qty">
+                      <label for="{{ field.name }}__{{ option.value }}">Quantity</label>
+                      <select
+                        id="{{ field.name }}__{{ option.value }}"
+                        name="{{ field.name }}__{{ option.value }}"
+                        data-product-qty
+                        data-price="{{ option.price }}"
+                        aria-label="Quantity for {{ option.label }}"
+                      >
+                        {% for n in range(0, (field.max_quantity or 10) + 1) %}
+                        <option value="{{ n }}"{% if (option.quantity or '0') == n|string %} selected{% endif %}>{{ n }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </fieldset>
+            {% endfor %}
+            {% for field in form.fields if field.type != "products" %}
             <div
               class="form-field"
               data-field="{{ field.name }}"
@@ -131,6 +179,7 @@
               {% endif %}
             </div>
             {% endfor %}
+            <p class="order-total" id="order-total" hidden>Order total: <strong>$0</strong></p>
             <button class="btn btn-primary" type="submit">{{ form.submit_label or "Submit order" }}</button>
             {% if form.kind == "inquiry" %}
             <p class="field-hint venmo-form-note">We’ll follow up by phone or email to discuss options.</p>
@@ -178,6 +227,7 @@
             href="{{ business.email_href }}?subject={{ item.name | urlencode }}"
           >{{ item.cta }}</a>
           {% endif %}
+          </div>
           {% endif %}
         </div>
       </div>
@@ -223,12 +273,39 @@
           return Number(select.selectedOptions[0].dataset.price || 0);
         }
 
+        function productTotal() {
+          let total = 0;
+          document.querySelectorAll("[data-product-qty]").forEach(function (select) {
+            total += Number(select.value || 0) * Number(select.dataset.price || 0);
+          });
+          return total;
+        }
+
         function estimatedTotal() {
           const stylePrice = selectedPrice(document.getElementById("style"));
           const deliveryPrice = selectedPrice(document.getElementById("fulfillment"));
           const quantity = Number(document.getElementById("quantity")?.value || 1);
-          return stylePrice * quantity + deliveryPrice;
+          return stylePrice * quantity + deliveryPrice + productTotal();
         }
+
+        const orderTotal = document.getElementById("order-total");
+        const productError = document.getElementById("product-error");
+
+        function syncOrderTotal() {
+          if (!orderTotal) return;
+          const total = productTotal();
+          orderTotal.hidden = total < 1;
+          const amount = orderTotal.querySelector("strong");
+          if (amount) amount.textContent = "$" + total;
+        }
+
+        document.querySelectorAll("[data-product-qty]").forEach(function (select) {
+          select.addEventListener("change", function () {
+            if (productError) productError.hidden = true;
+            syncOrderTotal();
+          });
+        });
+        syncOrderTotal();
 
         function openModal() {
           const total = estimatedTotal();
@@ -240,9 +317,25 @@
           if (modal) modal.hidden = true;
         }
 
-        if (form && paymentMethod && modal) {
+        function requireArrangement(event) {
+          if (!document.querySelector("[data-product-qty]") || productTotal() >= 1) return false;
+          event.preventDefault();
+          if (productError) {
+            productError.hidden = false;
+            productError.scrollIntoView({ block: "center", behavior: "smooth" });
+          }
+          return true;
+        }
+
+        const submitButton = form && form.querySelector("[type='submit']");
+        if (submitButton) {
+          submitButton.addEventListener("click", requireArrangement);
+        }
+
+        if (form) {
           form.addEventListener("submit", function (event) {
-            if (paymentMethod.value) return;
+            if (requireArrangement(event)) return;
+            if (!paymentMethod || paymentMethod.value || !modal) return;
             if (!form.checkValidity()) return;
             event.preventDefault();
             openModal();
@@ -264,6 +357,47 @@
             form.submit();
           });
         }
+      })();
+    </script>
+    {% endif %}
+    {% if gallery %}
+    <dialog class="lightbox" id="photo-lightbox">
+      <div class="lightbox-frame">
+        <button type="button" class="lightbox-close" aria-label="Close enlarged photo">&times;</button>
+        <img id="photo-lightbox-image" alt="">
+      </div>
+    </dialog>
+    <script>
+      (function () {
+        var dialog = document.getElementById("photo-lightbox");
+        var image = document.getElementById("photo-lightbox-image");
+        var closeButton = dialog && dialog.querySelector(".lightbox-close");
+        if (!dialog || !image || typeof dialog.showModal !== "function") return;
+
+        document.querySelectorAll(".zoomable").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var source = button.querySelector("img");
+            if (!source) return;
+            image.src = source.currentSrc || source.src;
+            image.alt = source.alt || "Enlarged photo";
+            if (!dialog.open) dialog.showModal();
+          });
+        });
+
+        if (closeButton) {
+          closeButton.addEventListener("click", function () {
+            dialog.close();
+          });
+        }
+
+        dialog.addEventListener("click", function (event) {
+          if (event.target === dialog) dialog.close();
+        });
+
+        dialog.addEventListener("close", function () {
+          image.removeAttribute("src");
+          image.alt = "";
+        });
       })();
     </script>
     {% endif %}

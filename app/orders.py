@@ -66,13 +66,38 @@ def parse_total(value: str | None) -> int | None:
         amount = int(value)
     except ValueError:
         return None
-    if 1 <= amount <= 1000:
+    if 1 <= amount <= 5000:
         return amount
     return None
 
 
 def _option_map(field: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {str(option["value"]): option for option in field.get("options", [])}
+
+
+def _validate_products(field: dict[str, Any], data: dict[str, str], lines: list[str]) -> int:
+    max_qty = int(field.get("max_quantity") or 10)
+    chosen: list[str] = []
+    total = 0
+    for option in field.get("options", []):
+        raw_qty = (data.get(f"{field['name']}__{option['value']}") or "0").strip()
+        label = str(option["label"])
+        if not raw_qty.isdigit():
+            raise ValueError(f"Please choose a valid quantity for {label}.")
+        qty = int(raw_qty)
+        if qty > max_qty:
+            raise ValueError(f"Please choose a quantity between 0 and {max_qty}.")
+        if not qty:
+            continue
+        price = int(option["price"])
+        total += price * qty
+        chosen.append(f"{label}: {qty} × ${price}")
+    if field.get("required") and not chosen:
+        raise ValueError("Please choose at least one arrangement.")
+    if chosen:
+        lines.append(f"{field['label']}:")
+        lines.extend(f"  {line}" for line in chosen)
+    return total
 
 
 def validate_order(
@@ -84,12 +109,16 @@ def validate_order(
     lines = [f"New order: {item_name}", ""]
     style_price = 0
     delivery_price = 0
+    items_total = 0
     quantity = 1
     customer_email: str | None = None
     fulfillment = ""
 
     for field in form["fields"]:
         name = field["name"]
+        if field["type"] == "products":
+            items_total += _validate_products(field, data, lines)
+            continue
         raw = (data.get(name) or "").strip()
         if field.get("required") and not raw:
             raise ValueError(f"Please fill in {field['label'].lower()}.")
@@ -135,7 +164,7 @@ def validate_order(
             if raw:
                 lines.append(f"{field['label']}: {raw}")
 
-    estimated = style_price * quantity + delivery_price
+    estimated = style_price * quantity + delivery_price + items_total
     lines.append("")
     if form.get("payment") == "venmo":
         if estimated < 1:

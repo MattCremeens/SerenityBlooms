@@ -92,3 +92,11 @@ values. Keep one URL canonical and redirect the other.
 - Domain and Secret Manager charges may apply even when Cloud Run scales to zero.
 - Keep `SMTP_PASSWORD` in Secret Manager, never in the image, environment
   variables entered as plaintext, or committed files.
+
+  To deploy to production after making a change
+  ```bash
+  gcloud run deploy serenity-blooms-web \
+      --source . \
+      --project serenity-blooms \
+      --region us-central1
+  ```
